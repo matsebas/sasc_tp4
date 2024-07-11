@@ -200,10 +200,11 @@ export default function Calendar({ eventos }: { eventos: SelectEvento[] }) {
           <Button
             radius="full"
             size="md"
-            color="primary"
+            variant='flat'
+            color="warning"
             onPress={() => setSelectedDate(DayPilot.Date.today())}
           >
-            Hoy
+            Ir a Hoy
           </Button>
           <Tabs
             className="flex-0"
@@ -214,8 +215,8 @@ export default function Calendar({ eventos }: { eventos: SelectEvento[] }) {
             onSelectionChange={(e) => setView(e.valueOf() as 'Days' | 'Week')}
             selectedKey={view}
           >
-            <Tab key="Days" title="Días" />
-            <Tab key="Week" title="Semana" />
+            <Tab key="Days" title="Visa diaria" />
+            <Tab key="Week" title="Vista semanal" />
           </Tabs>
         </div>
         <div className="flex-grow">
