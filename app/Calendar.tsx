@@ -1,6 +1,6 @@
 'use client';
 
-import { SelectEvento } from '@/lib/db';
+import { ModifiedEvento, SelectEvento } from '@/lib/db';
 import {
   DayPilot,
   DayPilotCalendar,
@@ -9,20 +9,9 @@ import {
 import { Button, Tab, Tabs } from '@nextui-org/react';
 import { data } from 'autoprefixer';
 import { useEffect, useState } from 'react';
+import { deleteEvento, editEvento, saveEvento } from './actions';
 
 export default function Calendar({ eventos }: { eventos: SelectEvento[] }) {
-  const styles = {
-    wrap: {
-      display: 'flex'
-    },
-    left: {
-      marginRight: '10px'
-    },
-    main: {
-      flexGrow: '1'
-    }
-  };
-
   const colors = [
     { name: 'Verde', id: '#6aa84f95' },
     { name: 'Azul', id: '#3d85c695' },
@@ -44,10 +33,34 @@ export default function Calendar({ eventos }: { eventos: SelectEvento[] }) {
     'Week' | 'Day' | 'Days' | 'WorkWeek' | 'Resources' | undefined
   >('Week');
 
+  const handleDeleteEvent = async (args: DayPilot.MenuItemClickArgs) => {
+    const evento = args.source.data;
+    try {
+      await deleteEvento(evento.id);
+      // Report.success('Pedido confirmado', '', 'Aceptar');
+      console.log('handleDeleteEvent', args);
+    } catch (error: any) {
+      // Report.failure('Error al eliminar evento', error.message, 'Aceptar');
+      console.error('handleDeleteEvent', args);
+    }
+  };
+
+  // const handleEditEvent = async (args: DayPilot.MenuItemClickArgs) => {
+  //   const evento = args.source.data;
+  //   try {
+  //     await editEvento(evento);
+  //     // Report.success('Pedido confirmado', '', 'Aceptar');
+  //     console.log('handleEditEvent', args);
+  //   } catch (error: any) {
+  //     // Report.failure('Error al eliminar evento', error.message, 'Aceptar');
+  //     console.error('handleEditEvent', args);
+  //   }
+  // };
+
   const editEvent = async (e: DayPilot.Event) => {
     const form = [
       { name: 'Título', id: 'text', type: 'text' },
-      { name: 'Detalle', id: 'text', type: 'text' },
+      { name: 'Detalle', id: 'description', type: 'text' },
       { name: 'Color', id: 'backColor', type: 'select', options: colors }
     ];
 
@@ -55,8 +68,20 @@ export default function Calendar({ eventos }: { eventos: SelectEvento[] }) {
     if (modal.canceled) {
       return;
     }
+
     e.data.text = modal.result.text;
-    // e.data.backColor = modal.result.backColor;
+    e.data.description = modal.result.description;
+    e.data.backColor = modal.result.backColor;
+
+    const evento: ModifiedEvento = {
+      id: e.data.id,
+      start: e.data.start.toDate().toJSON(),
+      end: e.data.end.toDate().toJSON(),
+      text: e.data.text,
+      backColor: e.data.backColor
+    };
+    console.log('editEvent', evento);
+    editEvento(evento);
     calendar?.events.update(e);
   };
 
@@ -64,9 +89,7 @@ export default function Calendar({ eventos }: { eventos: SelectEvento[] }) {
     items: [
       {
         text: 'Eliminar',
-        onClick: async (args) => {
-          calendar?.events.remove(args.source);
-        }
+        onClick: handleDeleteEvent
       },
       {
         text: '-'
@@ -74,7 +97,7 @@ export default function Calendar({ eventos }: { eventos: SelectEvento[] }) {
       {
         text: 'Editar...',
         onClick: async (args) => {
-          await editEvent(args.source);
+          editEvent(args.source);
         }
       }
     ]
@@ -107,6 +130,9 @@ export default function Calendar({ eventos }: { eventos: SelectEvento[] }) {
   };
 
   useEffect(() => {
+    if (!eventos) {
+      return;
+    }
     const mappedEvents = eventos.map((e) => {
       return {
         id: e.id,
@@ -118,6 +144,7 @@ export default function Calendar({ eventos }: { eventos: SelectEvento[] }) {
         data
       } as DayPilot.EventData;
     });
+    console.log('mappedEvents', mappedEvents);
     setEvents(mappedEvents);
   }, [eventos]);
 
@@ -126,7 +153,7 @@ export default function Calendar({ eventos }: { eventos: SelectEvento[] }) {
       return;
     }
     calendar.update({ startDate: selectedDate, events, viewType: view });
-  }, [calendar, view, selectedDate]);
+  }, [calendar, view, selectedDate, events]);
 
   const onTimeRangeSelected = async (
     args: DayPilot.CalendarTimeRangeSelectedArgs
@@ -140,10 +167,17 @@ export default function Calendar({ eventos }: { eventos: SelectEvento[] }) {
       return;
     }
     // console.log("modal.result", modal.result, calendar);
-    calendar?.events.add({
+    const newEvent = {
       start: args.start,
       end: args.end,
       id: DayPilot.guid(),
+      text: modal.result
+    };
+    calendar?.events.add(newEvent);
+    saveEvento({
+      id: newEvent.id,
+      start: args.start.toDate().toJSON(),
+      end: args.end.toDate().toJSON(),
       text: modal.result
     });
   };

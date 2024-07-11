@@ -4,7 +4,9 @@
     "dev": "next dev --turbo",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "generate": "drizzle-kit generate",
+    "migrate": "drizzle-kit migrate"
   },
   "dependencies": {
     "@daypilot/daypilot-lite-react": "^3.23.0",
@@ -20,7 +22,7 @@
     "autoprefixer": "^10.4.19",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
-    "drizzle-orm": "^0.30.10",
+    "drizzle-orm": "^0.32.0",
     "framer-motion": "^11.2.6",
     "lucide-react": "^0.378.0",
     "next": "14.2.3",
@@ -46,6 +48,6 @@
     "trailingComma": "none"
   },
   "devDependencies": {
-    "drizzle-kit": "^0.21.1"
+    "drizzle-kit": "^0.23.0"
   }
 }

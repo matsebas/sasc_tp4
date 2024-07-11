@@ -1,19 +1,20 @@
 'use server';
 
+import { addEvento, deleteEventoById, NewEvento, updateEvento } from '@/lib/db';
+import { revalidatePath } from 'next/cache';
 
-// export async function deleteUser(userId: number) {
-//   await deleteUserById(userId);
-//   revalidatePath('/users');
-// }
+export async function saveEvento(evento: NewEvento) {
+  const order = await addEvento(evento);
+  revalidatePath('/');
+  return order;
+}
 
-// export async function deleteProduct(productId: number) {
-//   await deleteProductById(productId);
-//   revalidatePath('/products');
-// }
+export async function deleteEvento(id: string) {
+  await deleteEventoById(id);
+  revalidatePath('/');
+}
 
-// export async function saveOrder(items: SelectOrderItem[]) {
-//   const order = await createOrder({ items: items });
-//   revalidatePath('/products');
-//   revalidatePath('/');
-//   return order;
-// }
+export async function editEvento(modified: NewEvento) {
+  await updateEvento(modified);
+  revalidatePath('/');
+}

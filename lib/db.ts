@@ -1,4 +1,4 @@
-import { eq, ilike } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 
 import { sql } from '@vercel/postgres';
 import { drizzle } from 'drizzle-orm/vercel-postgres';
@@ -12,36 +12,11 @@ export type NewEvento = typeof eventos.$inferInsert;
 export type ModifiedEvento = typeof eventos.$inferInsert;
 
 // Funciones
-export async function getEventos(
-  search: string,
-  offset: number
-): Promise<{
-  eventos: SelectEvento[];
-  newOffset: number | null;
-}> {
-  // Siempre buscar en la tabla completa, no por página
-  if (search) {
-    return {
-      eventos: await db
-        .select()
-        .from(eventos)
-        .where(ilike(eventos.text, `%${search}%`))
-        .orderBy(eventos.id)
-        .limit(1000),
-      newOffset: null
-    };
-  }
-
-  if (offset === null) {
-    return { eventos: [], newOffset: null };
-  }
-
-  const moreEventos = await db.select().from(eventos).limit(20).offset(offset);
-  const newOffset = moreEventos.length >= 20 ? offset + 20 : null;
-  return { eventos: moreEventos, newOffset };
+export async function getEventos(): Promise<SelectEvento[]> {
+  return await db.select().from(eventos).orderBy(eventos.id).limit(1000);
 }
 
-export async function getEventoById(id: number) {
+export async function getEventoById(id: string) {
   const result = await db
     .select()
     .from(eventos)
@@ -51,13 +26,17 @@ export async function getEventoById(id: number) {
 }
 
 export async function addEvento(newEvento: NewEvento) {
-  await db.insert(eventos).values(newEvento);
+  console.log('addEvento', newEvento);
+  const evento = (await db.insert(eventos).values(newEvento).returning())[0];
+  return evento.id;
 }
 
-export async function deleteEventoById(id: number) {
+export async function deleteEventoById(id: string) {
+  console.log('deleteEventoById', id);
   await db.delete(eventos).where(eq(eventos.id, id));
 }
 
-export async function updateEvento(id: number, evento: ModifiedEvento) {
-  await db.update(eventos).set(evento).where(eq(eventos.id, id));
+export async function updateEvento(evento: ModifiedEvento) {
+  console.log('updateEvento', evento);
+  await db.update(eventos).set(evento).where(eq(eventos.id, evento.id));
 }
